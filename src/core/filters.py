@@ -93,8 +93,9 @@ def _filter_by_date(
 ) -> list[VideoMeta]:
     """Keep only videos whose upload date falls within the range.
 
-    Videos with empty or unparseable ``upload_date`` are **excluded**
-    when a date filter is active.
+    Videos with empty or unparseable ``upload_date`` are **included**
+    (given the benefit of the doubt) since flat extraction often does
+    not provide upload dates.
 
     Args:
         videos: Input list.
@@ -111,7 +112,9 @@ def _filter_by_date(
     for v in videos:
         vdate = _parse_date(v.upload_date)
         if vdate is None:
-            # Cannot compare — exclude when a date filter is active.
+            # No date available — include the video rather than
+            # silently dropping it (flat extraction rarely has dates).
+            filtered.append(v)
             continue
         if start and vdate < start:
             continue

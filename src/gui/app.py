@@ -44,8 +44,8 @@ class App(ctk.CTk):
 
         # --- Window setup ---
         self.title("YTLinkExporter")
-        self.geometry("720x820")
-        self.minsize(600, 700)
+        self.geometry("720x960")
+        self.minsize(600, 800)
 
         # Apply theme from settings.
         theme = get_setting("theme") or "system"

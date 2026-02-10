@@ -24,6 +24,7 @@ def sample_videos() -> list[VideoMeta]:
             video_id="AAA",
             thumbnail_url="",
             upload_date="20240615",
+            uploader="Gaming with Doc",
         ),
         VideoMeta(
             title="Second Video",
@@ -31,6 +32,7 @@ def sample_videos() -> list[VideoMeta]:
             video_id="BBB",
             thumbnail_url="",
             upload_date="20240720",
+            uploader="Gaming with Doc",
         ),
     ]
 
@@ -57,11 +59,11 @@ class TestExportShortcuts:
         assert "[InternetShortcut]" in content
         assert "URL=https://www.youtube.com/watch?v=" in content
 
-    def test_filename_contains_date(self, sample_videos, tmp_path):
-        """Filenames start with the formatted upload date."""
+    def test_filename_contains_uploader(self, sample_videos, tmp_path):
+        """Filenames include the uploader/channel name."""
         export_shortcuts(sample_videos, str(tmp_path))
         names = [f.name for f in tmp_path.glob("*.url")]
-        assert any("2024-06-15" in n for n in names)
+        assert any("Gaming with Doc" in n for n in names)
 
 
 # ---------------------------------------------------------------------------

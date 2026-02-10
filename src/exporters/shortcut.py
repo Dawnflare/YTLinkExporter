@@ -46,10 +46,13 @@ def export_shortcuts(
 
     for idx, video in enumerate(videos):
         try:
-            # Format the upload date as YYYY-MM-DD when available.
-            date_prefix = _format_date(video.upload_date) or "Unknown"
+            # Use the uploader/channel name as prefix when available.
             safe_title = sanitize_filename(video.title)
-            filename = f"{date_prefix} - {safe_title}.url"
+            if video.uploader:
+                safe_uploader = sanitize_filename(video.uploader)
+                filename = f"{safe_uploader} - {safe_title}.url"
+            else:
+                filename = f"{safe_title}.url"
 
             filepath = out_path / filename
             content = f"[InternetShortcut]\nURL={video.url}\n"

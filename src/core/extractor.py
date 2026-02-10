@@ -39,6 +39,7 @@ class VideoMeta:
     video_id: str
     thumbnail_url: str = ""
     upload_date: str = ""
+    uploader: str = ""
 
 
 @dataclass
@@ -111,6 +112,7 @@ def _entry_to_meta(entry: dict) -> Optional[VideoMeta]:
 
     thumbnail = entry.get("thumbnail", "") or entry.get("thumbnails", [{}])[-1].get("url", "")
     upload_date = entry.get("upload_date", "") or ""
+    uploader = entry.get("uploader", "") or entry.get("channel", "") or ""
 
     return VideoMeta(
         title=title,
@@ -118,6 +120,7 @@ def _entry_to_meta(entry: dict) -> Optional[VideoMeta]:
         video_id=video_id,
         thumbnail_url=thumbnail,
         upload_date=upload_date,
+        uploader=uploader,
     )
 
 

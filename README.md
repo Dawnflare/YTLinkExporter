@@ -62,19 +62,34 @@ src/
 
 ## Configuration
 
-The application stores preferences in a `settings.json` file in the project root. This file is created automatically when the app first runs (or when settings are changed).
+The application stores preferences in a `settings.json` file in the project root. This file is created automatically on first launch.
 
-You can manually edit `settings.json` to set your preferred defaults:
+### Settings that auto-save from the GUI
+
+| Setting | How it's set |
+|---------|-------------|
+| **Save Location** | Click "Browse…" next to Save Location — your choice is remembered for next launch |
+| **Cookies File** | Click "Browse…" next to Cookies File — used for age-gated or restricted content |
+
+### Manual editing
+
+You can also edit `settings.json` directly:
 
 ```json
 {
   "default_save_path": "C:\\Users\\YourName\\Downloads\\MyYTArchive",
-  "theme": "dark",
-  "cookies_path": ""
+  "cookies_path": "C:\\Users\\YourName\\cookies.txt",
+  "theme": "dark"
 }
 ```
 
-*Note: Use double backslashes `\\` for paths on Windows.*
+| Key | Values | Description |
+|-----|--------|-------------|
+| `default_save_path` | Any valid folder path | Where exports are saved |
+| `cookies_path` | Path to a `cookies.txt` file, or `""` | Enables access to restricted videos |
+| `theme` | `"system"`, `"dark"`, or `"light"` | Application color theme |
+
+*Note: Use double backslashes `\\` for Windows paths in JSON.*
 
 ## Running Tests
 

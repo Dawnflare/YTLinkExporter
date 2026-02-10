@@ -44,8 +44,8 @@ class App(ctk.CTk):
 
         # --- Window setup ---
         self.title("YTLinkExporter")
-        self.geometry("720x960")
-        self.minsize(600, 800)
+        self.geometry("720x1020")
+        self.minsize(600, 860)
 
         # Apply theme from settings.
         theme = get_setting("theme") or "system"
@@ -96,7 +96,7 @@ class App(ctk.CTk):
         self._status.reset()
         self._status.log(f"Loading metadata for: {url}")
 
-        cookies = get_setting("cookies_path") or None
+        cookies = self._export_opts.cookies_var.get().strip() or None
 
         def _extract():
             return extract_playlist(url, cookies_path=cookies)

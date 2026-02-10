@@ -2,10 +2,12 @@
 Filter Panel — Date Range, Count Limit, Keyword Filter
 
 A collapsible frame that groups all optional extraction filters.
+Includes quick-select buttons for common date ranges.
 """
 
 from __future__ import annotations
 
+from datetime import date, timedelta
 from typing import Optional
 
 import customtkinter as ctk
@@ -41,23 +43,59 @@ class FilterPanel(ctk.CTkFrame):
         self._content = ctk.CTkFrame(self, fg_color="transparent")
         self._content.pack(fill="x", padx=10, pady=(0, 10))
 
-        # Date start
+        # ---- Start Date ----
         self._add_label(self._content, "Start Date (YYYY-MM-DD)")
         self.date_start_var = ctk.StringVar()
+        start_row = ctk.CTkFrame(self._content, fg_color="transparent")
+        start_row.pack(fill="x", pady=(0, 2))
         ctk.CTkEntry(
-            self._content, textvariable=self.date_start_var,
+            start_row, textvariable=self.date_start_var,
             placeholder_text="e.g. 2024-01-01", height=32,
-        ).pack(fill="x", pady=(0, 6))
+        ).pack(side="left", fill="x", expand=True)
 
-        # Date end
+        # Quick-select buttons for start date
+        presets_frame = ctk.CTkFrame(self._content, fg_color="transparent")
+        presets_frame.pack(fill="x", pady=(0, 6))
+
+        presets = [
+            ("1W", 7),
+            ("1M", 30),
+            ("6M", 182),
+            ("1Y", 365),
+            ("2Y", 730),
+            ("5Y", 1825),
+            ("10Y", 3650),
+        ]
+        for label, days in presets:
+            ctk.CTkButton(
+                presets_frame,
+                text=label,
+                width=42,
+                height=26,
+                font=ctk.CTkFont(size=11),
+                command=lambda d=days: self._set_start_ago(d),
+            ).pack(side="left", padx=(0, 4))
+
+        # ---- End Date ----
         self._add_label(self._content, "End Date (YYYY-MM-DD)")
         self.date_end_var = ctk.StringVar()
+        end_row = ctk.CTkFrame(self._content, fg_color="transparent")
+        end_row.pack(fill="x", pady=(0, 6))
         ctk.CTkEntry(
-            self._content, textvariable=self.date_end_var,
+            end_row, textvariable=self.date_end_var,
             placeholder_text="e.g. 2024-12-31", height=32,
-        ).pack(fill="x", pady=(0, 6))
+        ).pack(side="left", fill="x", expand=True, padx=(0, 6))
 
-        # Count limit
+        ctk.CTkButton(
+            end_row,
+            text="Today",
+            width=70,
+            height=32,
+            font=ctk.CTkFont(size=11),
+            command=self._set_end_today,
+        ).pack(side="right")
+
+        # ---- Count limit ----
         self._add_label(self._content, "Max Videos (0 = all)")
         self.limit_var = ctk.StringVar(value="0")
         ctk.CTkEntry(
@@ -65,7 +103,7 @@ class FilterPanel(ctk.CTkFrame):
             placeholder_text="0", height=32,
         ).pack(fill="x", pady=(0, 6))
 
-        # Keyword include
+        # ---- Keyword include ----
         self._add_label(self._content, "Include Keyword")
         self.keyword_include_var = ctk.StringVar()
         ctk.CTkEntry(
@@ -73,7 +111,7 @@ class FilterPanel(ctk.CTkFrame):
             placeholder_text="e.g. Tutorial", height=32,
         ).pack(fill="x", pady=(0, 6))
 
-        # Keyword exclude
+        # ---- Keyword exclude ----
         self._add_label(self._content, "Exclude Keyword")
         self.keyword_exclude_var = ctk.StringVar()
         ctk.CTkEntry(
@@ -129,3 +167,12 @@ class FilterPanel(ctk.CTkFrame):
             self._content.pack(fill="x", padx=10, pady=(0, 10))
             self._toggle_btn.configure(text="▼  Filters")
         self._expanded = not self._expanded
+
+    def _set_start_ago(self, days: int) -> None:
+        """Set the start date to *days* ago from today."""
+        target = date.today() - timedelta(days=days)
+        self.date_start_var.set(target.isoformat())
+
+    def _set_end_today(self) -> None:
+        """Set the end date to today's date."""
+        self.date_end_var.set(date.today().isoformat())

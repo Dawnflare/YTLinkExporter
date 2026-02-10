@@ -30,6 +30,9 @@ _DEFAULTS: dict[str, Any] = {
 def load_settings() -> dict[str, Any]:
     """Load settings from disk, merging with defaults for any missing keys.
 
+    If the settings file does not exist, it is created with the default
+    values so that the user always has an editable file.
+
     Returns:
         dict[str, Any]: A dictionary of all settings values.  Missing keys
         are filled from ``_DEFAULTS``.
@@ -44,6 +47,9 @@ def load_settings() -> dict[str, Any]:
         except (json.JSONDecodeError, OSError):
             # Corrupt file — silently fall back to defaults.
             pass
+    else:
+        # First launch — write defaults so the user has a file to edit.
+        save_settings(settings)
     return settings
 
 

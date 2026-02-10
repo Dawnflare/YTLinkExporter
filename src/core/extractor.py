@@ -181,28 +181,28 @@ def extract_playlist(
     with yt_dlp.YoutubeDL(opts) as ydl:
         result = ydl.extract_info(url, download=False)
 
-    if result is None:
-        return info
+        if result is None:
+            return info
 
-    # Single video (not a playlist).
-    if result.get("_type") != "playlist":
-        meta = _entry_to_meta(result, flat=flat)
-        if meta:
-            info.title = meta.title
-            info.videos = [meta]
-            info.video_count = 1
-        return info
+        # Single video (not a playlist).
+        if result.get("_type") != "playlist":
+            meta = _entry_to_meta(result, flat=flat)
+            if meta:
+                info.title = meta.title
+                info.videos = [meta]
+                info.video_count = 1
+            return info
 
-    # Playlist / channel.
-    info.title = result.get("title", "Untitled Playlist")
-    info.thumbnail_url = result.get("thumbnail", "")
+        # Playlist / channel.
+        info.title = result.get("title", "Untitled Playlist")
+        info.thumbnail_url = result.get("thumbnail", "")
 
-    # entries may be a generator (full extraction) or a list (flat).
-    entries = result.get("entries") or []
-    # Materialise into a list so we can get a count.
-    entries_list = list(entries)
+        # Entries may be a lazy iterator (full extraction) — materialise
+        # inside the `with` block so the ydl session is still alive.
+        entries = result.get("entries") or []
+        entries_list = list(entries)
+
     total = len(entries_list)
-
     for idx, entry in enumerate(entries_list):
         if entry is None:
             # Full extraction with ignoreerrors can yield None entries.

@@ -46,19 +46,19 @@ class FilterPanel(ctk.CTkFrame):
 
         # ---- Date Filter Toggle ----
         self._date_enabled_var = ctk.BooleanVar(value=False)
-        date_toggle_row = ctk.CTkFrame(self._content, fg_color="transparent")
-        date_toggle_row.pack(fill="x", pady=(2, 0))
+        self._date_toggle_row = ctk.CTkFrame(self._content, fg_color="transparent")
+        self._date_toggle_row.pack(fill="x", pady=(2, 4))
         ctk.CTkSwitch(
-            date_toggle_row,
+            self._date_toggle_row,
             text="Enable Date Filter",
             variable=self._date_enabled_var,
             font=ctk.CTkFont(size=12, weight="bold"),
             command=self._on_date_toggle,
         ).pack(side="left")
 
-        # Hint label (shown when date filter is toggled)
+        # Hint label (shown when date filter is toggled on)
         self._date_hint = ctk.CTkLabel(
-            date_toggle_row,
+            self._date_toggle_row,
             text="⚠ Reload metadata for dates",
             font=ctk.CTkFont(size=11),
             text_color=("orange", "#FFA500"),
@@ -72,12 +72,10 @@ class FilterPanel(ctk.CTkFrame):
         # Start Date
         self._add_label(self._date_frame, "Start Date (YYYY-MM-DD)")
         self.date_start_var = ctk.StringVar()
-        start_row = ctk.CTkFrame(self._date_frame, fg_color="transparent")
-        start_row.pack(fill="x", pady=(0, 2))
         ctk.CTkEntry(
-            start_row, textvariable=self.date_start_var,
+            self._date_frame, textvariable=self.date_start_var,
             placeholder_text="e.g. 2024-01-01", height=32,
-        ).pack(side="left", fill="x", expand=True)
+        ).pack(fill="x", pady=(0, 2))
 
         # Quick-select buttons for start date
         presets_frame = ctk.CTkFrame(self._date_frame, fg_color="transparent")
@@ -121,27 +119,31 @@ class FilterPanel(ctk.CTkFrame):
             command=self._set_end_today,
         ).pack(side="right")
 
+        # ---- Separator before non-date filters ----
+        self._other_filters_frame = ctk.CTkFrame(self._content, fg_color="transparent")
+        self._other_filters_frame.pack(fill="x")
+
         # ---- Count limit (always visible) ----
-        self._add_label(self._content, "Max Videos (0 = all)")
+        self._add_label(self._other_filters_frame, "Max Videos (0 = all)")
         self.limit_var = ctk.StringVar(value="0")
         ctk.CTkEntry(
-            self._content, textvariable=self.limit_var,
+            self._other_filters_frame, textvariable=self.limit_var,
             placeholder_text="0", height=32,
         ).pack(fill="x", pady=(0, 6))
 
         # ---- Keyword include (always visible) ----
-        self._add_label(self._content, "Include Keyword")
+        self._add_label(self._other_filters_frame, "Include Keyword")
         self.keyword_include_var = ctk.StringVar()
         ctk.CTkEntry(
-            self._content, textvariable=self.keyword_include_var,
+            self._other_filters_frame, textvariable=self.keyword_include_var,
             placeholder_text="e.g. Tutorial", height=32,
         ).pack(fill="x", pady=(0, 6))
 
         # ---- Keyword exclude (always visible) ----
-        self._add_label(self._content, "Exclude Keyword")
+        self._add_label(self._other_filters_frame, "Exclude Keyword")
         self.keyword_exclude_var = ctk.StringVar()
         ctk.CTkEntry(
-            self._content, textvariable=self.keyword_exclude_var,
+            self._other_filters_frame, textvariable=self.keyword_exclude_var,
             placeholder_text="e.g. Shorts", height=32,
         ).pack(fill="x", pady=(0, 6))
 
@@ -211,9 +213,9 @@ class FilterPanel(ctk.CTkFrame):
     def _on_date_toggle(self) -> None:
         """Show or hide the date fields based on the toggle."""
         if self._date_enabled_var.get():
-            # Insert date frame right after the toggle row (before Max Videos).
-            self._date_frame.pack(fill="x", pady=(4, 0),
-                                  after=self._date_frame.master.winfo_children()[1])
+            # Show date fields between toggle row and other filters.
+            self._date_frame.pack(fill="x", pady=(0, 4),
+                                  after=self._date_toggle_row)
             self._date_hint.pack(side="left", padx=(10, 0))
         else:
             self._date_frame.pack_forget()

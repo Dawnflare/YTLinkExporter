@@ -111,8 +111,8 @@ class TestApplyFilters:
         assert len(result) == 1
         assert result[0].title == "Python Intro"
 
-    def test_empty_upload_date_excluded_when_date_filter_active(self):
-        """Videos with no upload_date are dropped when a date filter is set."""
+    def test_empty_upload_date_included_when_date_filter_active(self):
+        """Videos with no upload_date are kept (benefit of the doubt)."""
         videos = [_make_video("No Date", upload_date="")]
         result = apply_filters(videos, date_start="20240101")
-        assert len(result) == 0
+        assert len(result) == 1

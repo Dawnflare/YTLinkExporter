@@ -60,6 +60,22 @@ src/
 └── utils/threading.py       # Background-thread helper
 ```
 
+## Configuration
+
+The application stores preferences in a `settings.json` file in the project root. This file is created automatically when the app first runs (or when settings are changed).
+
+You can manually edit `settings.json` to set your preferred defaults:
+
+```json
+{
+  "default_save_path": "C:\\Users\\YourName\\Downloads\\MyYTArchive",
+  "theme": "dark",
+  "cookies_path": ""
+}
+```
+
+*Note: Use double backslashes `\\` for paths on Windows.*
+
 ## Running Tests
 
 ```bash

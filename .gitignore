@@ -68,6 +68,7 @@ desktop.ini
 .tmp/
 .agent/
 Gemini.md
+settings.json
 *.orig
 *.bak
 *.old

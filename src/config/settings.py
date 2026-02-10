@@ -2,7 +2,7 @@
 Persistent Settings Manager
 
 Reads and writes user preferences to a JSON file located at
-``~/.ytlinkexporter/settings.json``.  Provides sensible defaults for
+``settings.json`` in the project root. Provides sensible defaults for
 every key so the application can always start cleanly.
 """
 
@@ -15,8 +15,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 # Defaults
 # ---------------------------------------------------------------------------
-_SETTINGS_DIR = Path.home() / ".ytlinkexporter"
-_SETTINGS_FILE = _SETTINGS_DIR / "settings.json"
+_SETTINGS_FILE = Path("settings.json")
 
 _DEFAULTS: dict[str, Any] = {
     "default_save_path": str(Path.home() / "Downloads" / "YTLinkExporter"),
@@ -49,17 +48,7 @@ def load_settings() -> dict[str, Any]:
     return settings
 
 
-def save_settings(settings: dict[str, Any]) -> None:
-    """Persist the given settings dictionary to disk.
-
-    Args:
-        settings: A dictionary of key/value pairs to save.  Only the
-            keys present in this dictionary are written.
-
-    Raises:
-        OSError: If the settings directory cannot be created.
-    """
-    _SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
+    # Persist the given settings dictionary to disk.
     with open(_SETTINGS_FILE, "w", encoding="utf-8") as fh:
         json.dump(settings, fh, indent=2)
 

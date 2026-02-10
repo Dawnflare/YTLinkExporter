@@ -86,6 +86,7 @@ def _build_ydl_opts(
         "no_warnings": True,
         "ignoreerrors": True,        # Skip deleted / private entries.
         "skip_download": True,
+        "ignore_no_formats_error": True,  # Keep entry even if no download format found.
     }
     if flat:
         opts["extract_flat"] = True

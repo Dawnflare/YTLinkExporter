@@ -83,9 +83,28 @@ class TestApplyFilters:
         assert result[0].title == "Python Tutorial"
 
     def test_keyword_case_insensitive(self):
-        """Keyword matching is case-insensitive."""
-        videos = [_make_video("PYTHON tutorial")]
+        """Keyword matching is case-insensitive for both include and exclude."""
+        videos = [
+            _make_video("PYTHON tutorial"),
+            _make_video("javaScript Basics"),
+            _make_video("GoLang Guide"),
+        ]
+
+        # Test Include: "python" (lower) matching "PYTHON" (upper)
         assert len(apply_filters(videos, keyword_include="python")) == 1
+
+        # Test Include: "JAVASCRIPT" (upper) matching "javaScript" (mixed)
+        assert len(apply_filters(videos, keyword_include="JAVASCRIPT")) == 1
+
+        # Test Exclude: "golang" (lower) excluding "GoLang" (mixed)
+        result = apply_filters(videos, keyword_exclude="golang")
+        assert len(result) == 2
+        assert "GoLang Guide" not in [v.title for v in result]
+
+        # Test Exclude: "PYTHON" (upper) excluding "PYTHON" (upper)
+        result = apply_filters(videos, keyword_exclude="PYTHON")
+        assert len(result) == 2
+        assert "PYTHON tutorial" not in [v.title for v in result]
 
     def test_limit(self):
         """Limit truncates the result list."""

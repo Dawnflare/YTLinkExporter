@@ -1,10 +1,13 @@
 """
 YouTube Playlist / Channel Metadata Extractor
 
-Wraps ``yt_dlp`` to perform flat extraction of video metadata from a
-playlist or channel URL.  Returns lightweight ``VideoMeta`` dataclass
-instances rather than raw dictionaries so that the rest of the
-application works with a stable, typed contract.
+Wraps ``yt_dlp`` to extract video metadata from a playlist or channel
+URL.  Returns lightweight ``VideoMeta`` dataclass instances rather than
+raw dictionaries so that the rest of the application works with a
+stable, typed contract.
+
+Uses full extraction (not flat) so that upload dates and uploader
+names are available for filtering.
 """
 
 from __future__ import annotations
@@ -33,6 +36,7 @@ class VideoMeta:
         thumbnail_url: URL of the best-available thumbnail image.
         upload_date: Upload date as ``YYYYMMDD`` string, or empty if
             unavailable.
+        uploader: Channel / uploader name.
     """
     title: str
     url: str
@@ -62,30 +66,35 @@ class PlaylistInfo:
 # Extraction helpers
 # ---------------------------------------------------------------------------
 
-def _build_ydl_opts(cookies_path: Optional[str] = None) -> dict:
+def _build_ydl_opts(
+    cookies_path: Optional[str] = None,
+    flat: bool = False,
+) -> dict:
     """Construct the ``yt_dlp.YoutubeDL`` options dict.
 
     Args:
         cookies_path: Optional filesystem path to a Netscape-format
             ``cookies.txt`` file.
+        flat: If True, use flat extraction (fast but no upload dates).
 
     Returns:
         A dictionary suitable for passing to ``YoutubeDL()``.
     """
     opts: dict = {
-        "extract_flat": True,       # Do NOT download videos — metadata only.
         "quiet": True,
         "no_warnings": True,
         "ignoreerrors": True,        # Skip deleted / private entries.
         "skip_download": True,
     }
+    if flat:
+        opts["extract_flat"] = True
     if cookies_path:
         opts["cookiefile"] = cookies_path
     return opts
 
 
 def _entry_to_meta(entry: dict) -> Optional[VideoMeta]:
-    """Convert a single yt-dlp flat-extract entry to a ``VideoMeta``.
+    """Convert a single yt-dlp entry to a ``VideoMeta``.
 
     Args:
         entry: A raw dictionary returned by yt-dlp for one playlist
@@ -106,7 +115,7 @@ def _entry_to_meta(entry: dict) -> Optional[VideoMeta]:
         logger.debug("Skipping unavailable entry: %s", video_id)
         return None
 
-    url = entry.get("url", "")
+    url = entry.get("url") or entry.get("webpage_url", "")
     if not url and video_id:
         url = f"https://www.youtube.com/watch?v={video_id}"
 
@@ -135,8 +144,9 @@ def extract_playlist(
 ) -> PlaylistInfo:
     """Extract metadata for all videos in a YouTube playlist or channel.
 
-    Uses ``extract_flat=True`` so no actual video data is downloaded —
-    only lightweight metadata is retrieved.
+    Performs full extraction (not flat) so that ``upload_date`` and
+    ``uploader`` fields are populated for each video.  No video files
+    are downloaded — only metadata is retrieved.
 
     Args:
         url: A YouTube playlist or channel URL.
@@ -153,7 +163,7 @@ def extract_playlist(
     Raises:
         yt_dlp.utils.DownloadError: If the URL is invalid or unreachable.
     """
-    opts = _build_ydl_opts(cookies_path)
+    opts = _build_ydl_opts(cookies_path, flat=False)
     info = PlaylistInfo()
 
     with yt_dlp.YoutubeDL(opts) as ydl:

@@ -97,9 +97,10 @@ class App(ctk.CTk):
         self._status.log(f"Loading metadata for: {url}")
 
         cookies = self._export_opts.cookies_var.get().strip() or None
+        use_flat = not self._filters.date_filter_enabled
 
         def _extract():
-            return extract_playlist(url, cookies_path=cookies)
+            return extract_playlist(url, cookies_path=cookies, flat=use_flat)
 
         def _on_success(info: PlaylistInfo):
             self._playlist_info = info

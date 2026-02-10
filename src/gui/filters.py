@@ -2,7 +2,8 @@
 Filter Panel — Date Range, Count Limit, Keyword Filter
 
 A collapsible frame that groups all optional extraction filters.
-Includes quick-select buttons for common date ranges.
+Includes a date-filter toggle that controls visibility of date fields
+and signals to the app whether full extraction is needed.
 """
 
 from __future__ import annotations
@@ -43,10 +44,35 @@ class FilterPanel(ctk.CTkFrame):
         self._content = ctk.CTkFrame(self, fg_color="transparent")
         self._content.pack(fill="x", padx=10, pady=(0, 10))
 
-        # ---- Start Date ----
-        self._add_label(self._content, "Start Date (YYYY-MM-DD)")
+        # ---- Date Filter Toggle ----
+        self._date_enabled_var = ctk.BooleanVar(value=False)
+        date_toggle_row = ctk.CTkFrame(self._content, fg_color="transparent")
+        date_toggle_row.pack(fill="x", pady=(2, 0))
+        ctk.CTkSwitch(
+            date_toggle_row,
+            text="Enable Date Filter",
+            variable=self._date_enabled_var,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            command=self._on_date_toggle,
+        ).pack(side="left")
+
+        # Hint label (shown when date filter is toggled)
+        self._date_hint = ctk.CTkLabel(
+            date_toggle_row,
+            text="⚠ Reload metadata for dates",
+            font=ctk.CTkFont(size=11),
+            text_color=("orange", "#FFA500"),
+        )
+        # Initially hidden — shown when date filter is toggled on.
+
+        # ---- Date fields container (hidden by default) ----
+        self._date_frame = ctk.CTkFrame(self._content, fg_color="transparent")
+        # Not packed yet — shown when toggle is on.
+
+        # Start Date
+        self._add_label(self._date_frame, "Start Date (YYYY-MM-DD)")
         self.date_start_var = ctk.StringVar()
-        start_row = ctk.CTkFrame(self._content, fg_color="transparent")
+        start_row = ctk.CTkFrame(self._date_frame, fg_color="transparent")
         start_row.pack(fill="x", pady=(0, 2))
         ctk.CTkEntry(
             start_row, textvariable=self.date_start_var,
@@ -54,7 +80,7 @@ class FilterPanel(ctk.CTkFrame):
         ).pack(side="left", fill="x", expand=True)
 
         # Quick-select buttons for start date
-        presets_frame = ctk.CTkFrame(self._content, fg_color="transparent")
+        presets_frame = ctk.CTkFrame(self._date_frame, fg_color="transparent")
         presets_frame.pack(fill="x", pady=(0, 6))
 
         presets = [
@@ -76,10 +102,10 @@ class FilterPanel(ctk.CTkFrame):
                 command=lambda d=days: self._set_start_ago(d),
             ).pack(side="left", padx=(0, 4))
 
-        # ---- End Date ----
-        self._add_label(self._content, "End Date (YYYY-MM-DD)")
+        # End Date
+        self._add_label(self._date_frame, "End Date (YYYY-MM-DD)")
         self.date_end_var = ctk.StringVar()
-        end_row = ctk.CTkFrame(self._content, fg_color="transparent")
+        end_row = ctk.CTkFrame(self._date_frame, fg_color="transparent")
         end_row.pack(fill="x", pady=(0, 6))
         ctk.CTkEntry(
             end_row, textvariable=self.date_end_var,
@@ -95,7 +121,7 @@ class FilterPanel(ctk.CTkFrame):
             command=self._set_end_today,
         ).pack(side="right")
 
-        # ---- Count limit ----
+        # ---- Count limit (always visible) ----
         self._add_label(self._content, "Max Videos (0 = all)")
         self.limit_var = ctk.StringVar(value="0")
         ctk.CTkEntry(
@@ -103,7 +129,7 @@ class FilterPanel(ctk.CTkFrame):
             placeholder_text="0", height=32,
         ).pack(fill="x", pady=(0, 6))
 
-        # ---- Keyword include ----
+        # ---- Keyword include (always visible) ----
         self._add_label(self._content, "Include Keyword")
         self.keyword_include_var = ctk.StringVar()
         ctk.CTkEntry(
@@ -111,7 +137,7 @@ class FilterPanel(ctk.CTkFrame):
             placeholder_text="e.g. Tutorial", height=32,
         ).pack(fill="x", pady=(0, 6))
 
-        # ---- Keyword exclude ----
+        # ---- Keyword exclude (always visible) ----
         self._add_label(self._content, "Exclude Keyword")
         self.keyword_exclude_var = ctk.StringVar()
         ctk.CTkEntry(
@@ -123,6 +149,11 @@ class FilterPanel(ctk.CTkFrame):
     # Public API
     # ------------------------------------------------------------------
 
+    @property
+    def date_filter_enabled(self) -> bool:
+        """Whether the date filter toggle is on."""
+        return self._date_enabled_var.get()
+
     def get_filters(self) -> dict:
         """Return the current filter values as a dictionary.
 
@@ -130,7 +161,8 @@ class FilterPanel(ctk.CTkFrame):
             A dict with keys ``date_start``, ``date_end``, ``limit``,
             ``keyword_include``, and ``keyword_exclude``.  Empty strings
             represent unused filters, and ``limit`` is ``None`` when
-            set to 0 or empty.
+            set to 0 or empty.  Date values are only returned when the
+            date filter toggle is enabled.
         """
         limit_raw = self.limit_var.get().strip()
         try:
@@ -141,9 +173,17 @@ class FilterPanel(ctk.CTkFrame):
         if limit is not None and limit <= 0:
             limit = None
 
+        # Only apply date filters when the toggle is on.
+        if self._date_enabled_var.get():
+            date_start = self.date_start_var.get().strip() or None
+            date_end = self.date_end_var.get().strip() or None
+        else:
+            date_start = None
+            date_end = None
+
         return {
-            "date_start": self.date_start_var.get().strip() or None,
-            "date_end": self.date_end_var.get().strip() or None,
+            "date_start": date_start,
+            "date_end": date_end,
             "limit": limit,
             "keyword_include": self.keyword_include_var.get().strip() or None,
             "keyword_exclude": self.keyword_exclude_var.get().strip() or None,
@@ -167,6 +207,20 @@ class FilterPanel(ctk.CTkFrame):
             self._content.pack(fill="x", padx=10, pady=(0, 10))
             self._toggle_btn.configure(text="▼  Filters")
         self._expanded = not self._expanded
+
+    def _on_date_toggle(self) -> None:
+        """Show or hide the date fields based on the toggle."""
+        if self._date_enabled_var.get():
+            # Insert date frame right after the toggle row (before Max Videos).
+            self._date_frame.pack(fill="x", pady=(4, 0),
+                                  after=self._date_frame.master.winfo_children()[1])
+            self._date_hint.pack(side="left", padx=(10, 0))
+        else:
+            self._date_frame.pack_forget()
+            self._date_hint.pack_forget()
+            # Clear date values when toggling off.
+            self.date_start_var.set("")
+            self.date_end_var.set("")
 
     def _set_start_ago(self, days: int) -> None:
         """Set the start date to *days* ago from today."""

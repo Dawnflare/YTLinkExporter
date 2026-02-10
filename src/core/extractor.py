@@ -6,8 +6,8 @@ URL.  Returns lightweight ``VideoMeta`` dataclass instances rather than
 raw dictionaries so that the rest of the application works with a
 stable, typed contract.
 
-Uses full extraction (not flat) so that upload dates and uploader
-names are available for filtering.
+Supports both **flat** extraction (fast, no upload dates) and **full**
+extraction (slower, includes upload dates and uploader info).
 """
 
 from __future__ import annotations
@@ -68,7 +68,7 @@ class PlaylistInfo:
 
 def _build_ydl_opts(
     cookies_path: Optional[str] = None,
-    flat: bool = False,
+    flat: bool = True,
 ) -> dict:
     """Construct the ``yt_dlp.YoutubeDL`` options dict.
 
@@ -76,6 +76,7 @@ def _build_ydl_opts(
         cookies_path: Optional filesystem path to a Netscape-format
             ``cookies.txt`` file.
         flat: If True, use flat extraction (fast but no upload dates).
+            If False, use full extraction (slower, includes dates).
 
     Returns:
         A dictionary suitable for passing to ``YoutubeDL()``.
@@ -93,12 +94,13 @@ def _build_ydl_opts(
     return opts
 
 
-def _entry_to_meta(entry: dict) -> Optional[VideoMeta]:
+def _entry_to_meta(entry: dict, flat: bool = True) -> Optional[VideoMeta]:
     """Convert a single yt-dlp entry to a ``VideoMeta``.
 
     Args:
         entry: A raw dictionary returned by yt-dlp for one playlist
             entry.
+        flat: Whether this entry came from flat extraction.
 
     Returns:
         A ``VideoMeta`` instance, or ``None`` if the entry is unusable
@@ -115,11 +117,22 @@ def _entry_to_meta(entry: dict) -> Optional[VideoMeta]:
         logger.debug("Skipping unavailable entry: %s", video_id)
         return None
 
-    url = entry.get("url") or entry.get("webpage_url", "")
+    # In flat mode, 'url' is the watch page URL.
+    # In full mode, 'url' is the media stream URL — use 'webpage_url' instead.
+    if flat:
+        url = entry.get("url", "")
+    else:
+        url = entry.get("webpage_url", "") or entry.get("original_url", "")
+
     if not url and video_id:
         url = f"https://www.youtube.com/watch?v={video_id}"
 
-    thumbnail = entry.get("thumbnail", "") or entry.get("thumbnails", [{}])[-1].get("url", "")
+    thumbnail = entry.get("thumbnail", "") or ""
+    if not thumbnail:
+        thumbs = entry.get("thumbnails") or []
+        if thumbs:
+            thumbnail = thumbs[-1].get("url", "")
+
     upload_date = entry.get("upload_date", "") or ""
     uploader = entry.get("uploader", "") or entry.get("channel", "") or ""
 
@@ -141,12 +154,9 @@ def extract_playlist(
     url: str,
     cookies_path: Optional[str] = None,
     progress_callback=None,
+    flat: bool = True,
 ) -> PlaylistInfo:
     """Extract metadata for all videos in a YouTube playlist or channel.
-
-    Performs full extraction (not flat) so that ``upload_date`` and
-    ``uploader`` fields are populated for each video.  No video files
-    are downloaded — only metadata is retrieved.
 
     Args:
         url: A YouTube playlist or channel URL.
@@ -154,6 +164,8 @@ def extract_playlist(
             authenticated access.
         progress_callback: Optional callable ``(current: int, total: int) -> None``
             invoked after each entry is processed.
+        flat: If True (default), use fast flat extraction (no upload
+            dates).  If False, use full extraction to get dates/uploader.
 
     Returns:
         A ``PlaylistInfo`` object containing the playlist title and a
@@ -163,7 +175,7 @@ def extract_playlist(
     Raises:
         yt_dlp.utils.DownloadError: If the URL is invalid or unreachable.
     """
-    opts = _build_ydl_opts(cookies_path, flat=False)
+    opts = _build_ydl_opts(cookies_path, flat=flat)
     info = PlaylistInfo()
 
     with yt_dlp.YoutubeDL(opts) as ydl:
@@ -174,7 +186,7 @@ def extract_playlist(
 
     # Single video (not a playlist).
     if result.get("_type") != "playlist":
-        meta = _entry_to_meta(result)
+        meta = _entry_to_meta(result, flat=flat)
         if meta:
             info.title = meta.title
             info.videos = [meta]
@@ -184,11 +196,18 @@ def extract_playlist(
     # Playlist / channel.
     info.title = result.get("title", "Untitled Playlist")
     info.thumbnail_url = result.get("thumbnail", "")
-    entries = result.get("entries") or []
 
-    total = len(entries) if isinstance(entries, list) else 0
-    for idx, entry in enumerate(entries):
-        meta = _entry_to_meta(entry)
+    # entries may be a generator (full extraction) or a list (flat).
+    entries = result.get("entries") or []
+    # Materialise into a list so we can get a count.
+    entries_list = list(entries)
+    total = len(entries_list)
+
+    for idx, entry in enumerate(entries_list):
+        if entry is None:
+            # Full extraction with ignoreerrors can yield None entries.
+            continue
+        meta = _entry_to_meta(entry, flat=flat)
         if meta:
             info.videos.append(meta)
         if progress_callback and total:

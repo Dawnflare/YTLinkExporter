@@ -67,6 +67,7 @@ desktop.ini
 # --- Temporary / Agent artifacts ---
 .tmp/
 .agent/
+Gemini.md
 *.orig
 *.bak
 *.old

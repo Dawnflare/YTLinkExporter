@@ -16,6 +16,13 @@ A Windows desktop application for archiving YouTube playlists and channels witho
 
 ## Quick Start
 
+### Using Batch Files (recommended)
+
+1. **First-time setup** — double-click **`setup.bat`** to create the virtual environment and install dependencies.
+2. **Launch the app** — double-click **`launch.bat`**. If the venv doesn't exist yet, it runs setup automatically.
+
+### Using the Command Line
+
 ```bash
 # 1. Clone the repository
 git clone https://github.com/Dawnflare/YTLinkExporter.git

@@ -103,14 +103,14 @@ class App(ctk.CTk):
 
         def _on_success(info: PlaylistInfo):
             self._playlist_info = info
-            self.after(0, self._header.set_info, f"✓ {info.title}  ({info.video_count} videos)")
-            self.after(0, self._header.set_loading, False)
-            self.after(0, self._export_btn.configure, {"state": "normal"})
+            self.after(0, lambda: self._header.set_info(f"✓ {info.title}  ({info.video_count} videos)"))
+            self.after(0, lambda: self._header.set_loading(False))
+            self.after(0, lambda: self._export_btn.configure(state="normal"))
             self._status.log(f"Loaded {info.video_count} videos from \"{info.title}\".")
 
         def _on_error(exc: Exception):
-            self.after(0, self._header.set_error, f"Error: {exc}")
-            self.after(0, self._header.set_loading, False)
+            self.after(0, lambda: self._header.set_error(f"Error: {exc}"))
+            self.after(0, lambda: self._header.set_loading(False))
             self._status.log(f"❌ Failed: {exc}")
 
         run_in_background(_extract, on_success=_on_success, on_error=_on_error)
@@ -198,11 +198,11 @@ class App(ctk.CTk):
             self._status.log("✅ Export complete!")
 
         def _on_success(_):
-            self.after(0, self._export_btn.configure, {"state": "normal"})
+            self.after(0, lambda: self._export_btn.configure(state="normal"))
 
         def _on_error(exc: Exception):
             self._status.log(f"❌ Export failed: {exc}")
-            self.after(0, self._export_btn.configure, {"state": "normal"})
-            self.after(0, messagebox.showerror, "Export Error", str(exc))
+            self.after(0, lambda: self._export_btn.configure(state="normal"))
+            self.after(0, lambda: messagebox.showerror("Export Error", str(exc)))
 
         run_in_background(_run, on_success=_on_success, on_error=_on_error)

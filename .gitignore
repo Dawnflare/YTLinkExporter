@@ -46,6 +46,7 @@ logs/
 *.key
 token.json
 credentials.json
+cookies.txt
 
 # --- Editors / IDEs ---
 .vscode/

@@ -83,8 +83,8 @@ class HeaderPanel(ctk.CTkFrame):
         Args:
             text: The message to display.
         """
-        self.after(0, self._info_label.configure, {"text": text})
-        self.after(0, self._error_label.configure, {"text": ""})
+        self.after(0, lambda: self._info_label.configure(text=text))
+        self.after(0, lambda: self._error_label.configure(text=""))
 
     def set_error(self, text: str) -> None:
         """Display a red error message.
@@ -92,8 +92,8 @@ class HeaderPanel(ctk.CTkFrame):
         Args:
             text: The error message to display.
         """
-        self.after(0, self._error_label.configure, {"text": text})
-        self.after(0, self._info_label.configure, {"text": ""})
+        self.after(0, lambda: self._error_label.configure(text=text))
+        self.after(0, lambda: self._info_label.configure(text=""))
 
     def set_loading(self, loading: bool) -> None:
         """Toggle the Load button enabled/disabled state.
@@ -103,9 +103,9 @@ class HeaderPanel(ctk.CTkFrame):
                 text), ``False`` to re-enable it.
         """
         if loading:
-            self.after(0, self._load_btn.configure, {"state": "disabled", "text": "Loading…"})
+            self.after(0, lambda: self._load_btn.configure(state="disabled", text="Loading…"))
         else:
-            self.after(0, self._load_btn.configure, {"state": "normal", "text": "Load Metadata"})
+            self.after(0, lambda: self._load_btn.configure(state="normal", text="Load Metadata"))
 
     # ------------------------------------------------------------------
     # Internal

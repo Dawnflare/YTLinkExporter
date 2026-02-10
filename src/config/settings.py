@@ -7,7 +7,6 @@ every key so the application can always start cleanly.
 """
 
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -48,7 +47,12 @@ def load_settings() -> dict[str, Any]:
     return settings
 
 
-    # Persist the given settings dictionary to disk.
+def save_settings(settings: dict[str, Any]) -> None:
+    """Persist the given settings dictionary to disk.
+
+    Args:
+        settings: A dictionary of key/value pairs to save.
+    """
     with open(_SETTINGS_FILE, "w", encoding="utf-8") as fh:
         json.dump(settings, fh, indent=2)
 

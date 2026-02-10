@@ -8,11 +8,18 @@ A Windows desktop application for archiving YouTube playlists and channels witho
   - **Windows Shortcuts (`.url`)** — one file per video, opens in your default browser.
   - **Offline HTML Catalog (`.html`)** — responsive grid with embedded Base64 thumbnails for fully offline viewing.
   - **Plain Text List (`.txt`)** — one URL per line for use with other tools.
-- **Smart Filtering** — filter by date range, keyword include/exclude, or video count limit.
+- **Smart Filtering & High Performance**
+  - **Dynamic Extraction**: Choose between **Flat Mode** (instant loading of titles/URLs) and **Full Mode** (deep crawl for upload dates and channel info).
+  - **Date Range Filters**: Filter by upload date with a dedicated toggle to optimize extraction speed.
+  - **Quick-Select Presets**: Buttons for 1W, 1M, 6M, 1Y, and "Today" to instantly set date ranges.
+  - **Keyword matching**: Case-insensitive substring matching (include or exclude).
+- **Automated Organization**
+  - **Export to Subfolder**: Automatically organizes files into a folder named after the playlist or channel.
+  - **Filename Sanitization**: Handles illegal characters and reserved Windows names automatically.
 - **Batch Processing** — handles playlists and channels with thousands of videos.
 - **Cookie Support** — access age-gated or restricted content via a `cookies.txt` file.
-- **Persistent Settings** — remembers your default save folder and theme preference.
-- **Dark / Light / System Theme** — powered by CustomTkinter.
+- **Persistent Settings** — remembers your default save folder, cookies path, and theme.
+- **Modern UI** — dark/light theme support with a responsive layout optimized for long status logs.
 
 ## Quick Start
 

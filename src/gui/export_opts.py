@@ -44,6 +44,16 @@ class ExportOptionsPanel(ctk.CTkFrame):
         self.text_var = ctk.BooleanVar(value=True)
         ctk.CTkCheckBox(cb_frame, text="Plain Text List (.txt)", variable=self.text_var).pack(anchor="w", pady=2)
 
+        # --- Subfolder toggle ---
+        self.subfolder_var = ctk.BooleanVar(value=True)
+        self.subfolder_switch = ctk.CTkSwitch(
+            cb_frame,
+            text="Create Subfolder for Playlist",
+            variable=self.subfolder_var,
+            font=ctk.CTkFont(size=12),
+        )
+        self.subfolder_switch.pack(anchor="w", pady=(6, 2))
+
         # --- Save path ---
         path_label = ctk.CTkLabel(self, text="Save Location", font=ctk.CTkFont(size=12))
         path_label.pack(anchor="w", padx=10, pady=(6, 2))
@@ -95,14 +105,15 @@ class ExportOptionsPanel(ctk.CTkFrame):
         """Return the current export options.
 
         Returns:
-            A dict with keys ``shortcuts``, ``html``, ``text``
-            (booleans), ``output_dir`` (string path), and
+            A dict with keys ``shortcuts``, ``html``, ``text``,
+            ``subfolder`` (booleans), ``output_dir`` (string path), and
             ``cookies_path`` (string path or empty string).
         """
         return {
             "shortcuts": self.shortcut_var.get(),
             "html": self.html_var.get(),
             "text": self.text_var.get(),
+            "subfolder": self.subfolder_var.get(),
             "output_dir": self.path_var.get().strip(),
             "cookies_path": self.cookies_var.get().strip(),
         }
